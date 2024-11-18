@@ -10,10 +10,11 @@ num_neighbors = -1
 servers = {}
 
 # Data entered should be like this:
-# server id # : [neighbor (their id), cost]
+# neighbor id # : cost
 costs = {}
 
 def main():
+    # read_topology("topology_init.txt")
     while True:
         command = input("Enter command: ").strip().split()
 
@@ -40,8 +41,10 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
-        costs[information[0]] = [information[1], information[2]]
-    
+        costs[information[1]] = information[2]
+
+    f.close()
+
     # print("Printing results:")
     # print(num_servers)
     # print(num_neighbors)
