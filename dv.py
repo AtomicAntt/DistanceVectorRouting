@@ -13,13 +13,34 @@ servers = {}
 # neighbor id # : cost
 costs = {}
 
+routing_update_interval = -1
+
 def main():
-    # read_topology("topology_init.txt")
+    global routing_update_interval
+
     while True:
         command = input("Enter command: ").strip().split()
 
+        if not command:
+            continue
+
+        cmd = command[0].lower()
+
+        if cmd == "server":
+            if len(command) != 5:
+                print("Usage: server -t <topology-file-name> -i <routing-update-interval>")
+                continue
+
+            if command[1] != "-t" or command[3] != "-i":
+                print("Usage: server -t <topology-file-name> -i <routing-update-interval>")
+                continue
+
+            read_topology(command[2])
+            routing_update_interval = int(command[4])
+            # print_vars()
+
 def read_topology(fileDirectory):
-    # f = open("topology_init.txt")
+    global num_servers, num_neighbors
     f = open(fileDirectory)
 
     num_servers = int(f.readline())
@@ -42,15 +63,21 @@ def read_topology(fileDirectory):
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
         costs[information[1]] = information[2]
-
     f.close()
 
-    # print("Printing results:")
-    # print(num_servers)
-    # print(num_neighbors)
-    # print(servers)
-    # print(costs)
-
+# For debug purposes
+def print_vars():
+    print("Printing all variables:")
+    print("Num servers:")
+    print(num_servers)
+    print("Num neighbors:")
+    print(num_neighbors)
+    print("Servers:")
+    print(servers)
+    print("Costs:")
+    print(costs)
+    print("Routing update interval:")
+    print(routing_update_interval)
 
 if __name__ == "__main__":
     main()
