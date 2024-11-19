@@ -13,6 +13,7 @@ servers = {}
 # neighbor id # : cost
 costs = {}
 
+server_id = -1
 routing_update_interval = -1
 
 def main():
@@ -28,19 +29,35 @@ def main():
 
         if cmd == "server":
             if len(command) != 5:
-                print("Usage: server -t <topology-file-name> -i <routing-update-interval>")
+                print("server ERROR, correct usage: server -t <topology-file-name> -i <routing-update-interval>")
                 continue
 
             if command[1] != "-t" or command[3] != "-i":
-                print("Usage: server -t <topology-file-name> -i <routing-update-interval>")
+                print("server ERROR, correct usage: server -t <topology-file-name> -i <routing-update-interval>")
                 continue
 
-            read_topology(command[2])
+            read_topology(command[2]) # command[2] should be the topology file name
             routing_update_interval = int(command[4])
             # print_vars()
+        elif cmd == "update":
+            if len(command) != 4:
+                print("update ERROR, correct usage: update <server-ID1> <server-ID2> <Link Cost>")
+                continue
+        elif cmd == "step":
+            print("Sending routing update to neighbors")
+        elif cmd == "packets":
+            print("Displaying # of distance vector packets this server has received since last invocation")
+        elif cmd == "display":
+            print("Displaying the current routing table")
+        elif cmd == "disable":
+            if len(command) != 2:
+                print("disable ERROR, correct usage: disable <server-ID>")
+        elif cmd == "crash":
+            print("Closing all connections")
+
 
 def read_topology(fileDirectory):
-    global num_servers, num_neighbors
+    global num_servers, num_neighbors, server_id
     f = open(fileDirectory)
 
     num_servers = int(f.readline())
@@ -62,6 +79,8 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
+        server_id = information[0]
+        
         costs[information[1]] = information[2]
     f.close()
 
@@ -78,6 +97,8 @@ def print_vars():
     print(costs)
     print("Routing update interval:")
     print(routing_update_interval)
+    print("Server id:")
+    print(server_id)
 
 if __name__ == "__main__":
     main()
