@@ -14,6 +14,8 @@ servers = {}
 costs = {}
 
 server_id = -1
+port = -1
+
 routing_update_interval = -1
 
 def main():
@@ -38,7 +40,7 @@ def main():
 
             read_topology(command[2]) # command[2] should be the topology file name
             routing_update_interval = int(command[4])
-            # print_vars()
+            print_vars()
         elif cmd == "update":
             if len(command) != 4:
                 print("update ERROR, correct usage: update <server-ID1> <server-ID2> <Link Cost>")
@@ -57,7 +59,7 @@ def main():
 
 
 def read_topology(fileDirectory):
-    global num_servers, num_neighbors, server_id
+    global num_servers, num_neighbors, server_id, port
     f = open(fileDirectory)
 
     num_servers = int(f.readline())
@@ -82,6 +84,9 @@ def read_topology(fileDirectory):
         server_id = information[0]
         
         costs[information[1]] = information[2]
+    
+    port = servers[server_id][1]
+
     f.close()
 
 # For debug purposes
@@ -99,6 +104,8 @@ def print_vars():
     print(routing_update_interval)
     print("Server id:")
     print(server_id)
+    print("Port:")
+    print(port)
 
 if __name__ == "__main__":
     main()
