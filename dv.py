@@ -10,8 +10,8 @@ num_neighbors = -1
 servers = {}
 
 # Data entered should be like this:
-# neighbor id # : cost
-costs = {}
+# [server id, neighbor id, cost]
+costs = []
 
 server_id = -1
 port = -1
@@ -81,9 +81,10 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
+        # costs[information[1]] = information[2]
+        costs.append([information[0], information[1], information[2]])
+
         server_id = information[0]
-        
-        costs[information[1]] = information[2]
     
     port = servers[server_id][1]
 
