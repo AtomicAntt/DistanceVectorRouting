@@ -143,6 +143,15 @@ def send_routing_updates():
 
         routing_update["Servers"].append(n_server)
 
+    # Value of costs (array) is in this format: [server id, neighbor id, cost]
+    # Now send this routing update to all of the neighboring servers
+    for _, neighbor, _ in costs:
+        neighbor_ip = servers.get(neighbor)[0] # get server ip from given server id
+        neighbor_port = servers.get(neighbor)[1] # get server port from given server id
+
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        client_socket.sendto(routing_update.encode(), (neighbor_ip, neighbor_port))
+
 # For debug purposes
 def print_vars():
     print("Printing all variables:")
