@@ -3,8 +3,15 @@ import threading
 import sys
 import math
 
+# Values initialized after reading the toplogy file
 num_servers = -1
 num_neighbors = -1
+server_id = -1
+server_ip = -1
+port = -1
+
+# Initialized after running the server command on startup
+routing_update_interval = -1
 
 # Data entered should be like this:
 # server id # : [IP, port]
@@ -20,10 +27,6 @@ routing_table = {}
 
 packets_received = 0
 
-server_id = -1
-port = -1
-
-routing_update_interval = -1
 
 def main():
     global routing_update_interval
@@ -50,7 +53,7 @@ def main():
 
             initialize_routing_table()
 
-            print_vars()
+            print_vars() # for debugging
         elif cmd == "update":
             if len(command) != 4:
                 print("update ERROR, correct usage: update <server-ID1> <server-ID2> <Link Cost>")
@@ -69,7 +72,7 @@ def main():
             print("Closing all connections")
 
 def read_topology(fileDirectory):
-    global num_servers, num_neighbors, server_id, port
+    global num_servers, num_neighbors, server_id, port, server_ip
     f = open(fileDirectory)
 
     num_servers = int(f.readline())
@@ -97,6 +100,9 @@ def read_topology(fileDirectory):
     
     port = servers[server_id][1]
 
+    # get the server ip from the given server id
+    server_ip = servers.get(server_id)[0]
+
     f.close()
 
 def initialize_routing_table():
@@ -117,6 +123,26 @@ def initialize_routing_table():
     for _, neighbor, cost in costs:
         routing_table[neighbor] = [neighbor, cost]
 
+def send_routing_updates():
+    routing_update = {
+        "Number of update fields" : len(routing_table),
+        "Server port" : port,
+        "Server IP" : server_ip,
+        "Servers" : [] # Array of dictionaries
+    }
+
+    for destination_id in routing_table:
+        # Routing table format was this: destination id : [next_hop id, cost]
+
+        n_server = {
+            "Server IP address" : servers.get(destination_id)[0], # get server ip from given server id
+            "Server port" : servers.get(destination_id)[1],
+            "Server ID" : destination_id,
+            "Cost" : routing_table[destination_id][1]
+        }
+
+        routing_update["Servers"].append(n_server)
+
 # For debug purposes
 def print_vars():
     print("Printing all variables:")
@@ -132,6 +158,8 @@ def print_vars():
     print(routing_update_interval)
     print("Server id:")
     print(server_id)
+    print("Server ip:")
+    print(server_ip)
     print("Port:")
     print(port)
     print("Routing Table:")
