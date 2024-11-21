@@ -1,6 +1,7 @@
 import socket
 import threading
 import sys
+import math
 
 num_servers = -1
 num_neighbors = -1
@@ -12,6 +13,12 @@ servers = {}
 # Data entered should be like this:
 # [server id, neighbor id, cost]
 costs = []
+
+# Data entered should be like this:
+# destination id : [next_hop id, cost]
+routing_table = {}
+
+packets_received = 0
 
 server_id = -1
 port = -1
@@ -40,6 +47,9 @@ def main():
 
             read_topology(command[2]) # command[2] should be the topology file name
             routing_update_interval = int(command[4])
+
+            initialize_routing_table()
+
             print_vars()
         elif cmd == "update":
             if len(command) != 4:
@@ -54,9 +64,9 @@ def main():
         elif cmd == "disable":
             if len(command) != 2:
                 print("disable ERROR, correct usage: disable <server-ID>")
+                continue
         elif cmd == "crash":
             print("Closing all connections")
-
 
 def read_topology(fileDirectory):
     global num_servers, num_neighbors, server_id, port
@@ -81,7 +91,6 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
-        # costs[information[1]] = information[2]
         costs.append([information[0], information[1], information[2]])
 
         server_id = information[0]
@@ -89,6 +98,24 @@ def read_topology(fileDirectory):
     port = servers[server_id][1]
 
     f.close()
+
+def initialize_routing_table():
+    # Result in this format:
+    # destination-server id : [next hop server id, cost of path]
+
+    # First, add all server id into the dictionary and set values to none
+    global routing_table, server_id, costs
+
+    # key of servers is the server id
+    for id in servers:
+        routing_table[id] = [None, math.inf]
+    
+    # destination to own server has cost of 0
+    routing_table[server_id] = [server_id, 0]
+
+    # initially, the best known costs is directly to the neighbor (next hop is same as destination hop)
+    for _, neighbor, cost in costs:
+        routing_table[neighbor] = [neighbor, cost]
 
 # For debug purposes
 def print_vars():
@@ -107,6 +134,8 @@ def print_vars():
     print(server_id)
     print("Port:")
     print(port)
+    print("Routing Table:")
+    print(routing_table)
 
 if __name__ == "__main__":
     main()
