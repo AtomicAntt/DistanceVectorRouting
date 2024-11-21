@@ -27,6 +27,7 @@ routing_table = {}
 
 packets_received = 0
 
+lock = threading.lock() # so shared memory can be altered with threads safely
 
 def main():
     global routing_update_interval
@@ -113,16 +114,18 @@ def initialize_routing_table():
     global routing_table, server_id, costs
 
     # key of servers is the server id
+    # Initially, all servers are shown as unreachable (with infinite cost) and next hop is unknown
     for id in servers:
         routing_table[id] = [None, math.inf]
     
     # destination to own server has cost of 0
     routing_table[server_id] = [server_id, 0]
 
-    # initially, the best known costs is directly to the neighbor (next hop is same as destination hop)
+    # Initially, the best known costs is just the link directly to the neighbor (next hop will be same as destination hop)
     for _, neighbor, cost in costs:
         routing_table[neighbor] = [neighbor, cost]
 
+# This function should be called by the step command to send updates right away and every routing update interval.
 def send_routing_updates():
     routing_update = {
         "Number of update fields" : len(routing_table),
@@ -133,6 +136,7 @@ def send_routing_updates():
 
     for destination_id in routing_table:
         # Routing table format was this: destination id : [next_hop id, cost]
+        # Servers dictionary format was this: server id # : [IP, port]
 
         n_server = {
             "Server IP address" : servers.get(destination_id)[0], # get server ip from given server id
@@ -151,6 +155,18 @@ def send_routing_updates():
 
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         client_socket.sendto(routing_update.encode(), (neighbor_ip, neighbor_port))
+
+# This is a thread ran in the main function to read updates + use Bellman Ford equation to determine best routing
+def receive_routing_updates():
+    global packets_received
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server_socket.bind((server_ip, port))
+
+    while True:
+        message, address = server_socket.recvfrom(1024)
+        with lock:
+            packets_received += 1
+            # put bellman ford equation here, which could update the routing table
 
 # For debug purposes
 def print_vars():
