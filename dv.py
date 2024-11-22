@@ -95,7 +95,7 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
-        costs.append([information[0], information[1], information[2]])
+        costs.append([information[0], information[1], int(information[2])])
 
         server_id = information[0]
     
@@ -166,7 +166,36 @@ def receive_routing_updates():
         message, address = server_socket.recvfrom(1024)
         with lock:
             packets_received += 1
-            # put bellman ford equation here, which could update the routing table
+            # bellman ford equation to update routing table
+            update_routing(message.decode())
+
+def update_routing(routing_update):
+    num_updates = routing_update["Number of update fields"]
+    sender_ip = routing_update["Server IP"]
+    sender_id = -1
+
+    # value is in format [IP, port]
+    # I have to find sender id this way because routing_update does not contain a key for Server ID, but it does have the IP
+    for id, value in servers:
+        if value[0] == sender_ip:
+            sender_id = id
+    
+    if sender_id == -1:
+        print("Sender id was not found when updating routing")
+    
+    # go through all the destination cost information given by the routing update from this server
+    for i in range(num_updates):
+        n_server = routing_update["Servers"][i]
+        n_dest_id = n_server["Server ID"]
+        n_cost = n_server["Cost"] # Cost to go from the server with sender id to the server with dest id
+
+        # Cost for THIS server to go to the server with sender id + n_cost
+        new_cost = routing_table[sender_id][1] + n_cost
+
+        # If the cost, according to the current routing table, to the destination improves, change it
+        if new_cost < routing_table[n_dest_id][1]:
+            # The sender id gets to be the next hop of the routing table
+            routing_table[n_dest_id] = [sender_id, new_cost]
 
 # For debug purposes
 def print_vars():
