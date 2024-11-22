@@ -71,8 +71,12 @@ def main():
                 continue
         elif cmd == "step":
             print("Sending routing update to neighbors")
+            send_routing_updates()
         elif cmd == "packets":
-            print("Displaying # of distance vector packets this server has received since last invocation")
+            global packets_received
+            print("Displaying # of distance vector packets this server has received since last invocation:")
+            print(packets_received)
+            packets_received = 0
         elif cmd == "display":
             print("Displaying the current routing table")
             print(routing_table)
@@ -102,7 +106,7 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and corresponding IP, port pair")
 
-        servers[information[0]] = [information[1], information[2]]
+        servers[int(information[0])] = [information[1], int(information[2])]
     
     for i in range(num_neighbors):
         information = f.readline().split()
@@ -111,7 +115,7 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
-        costs.append([information[0], information[1], int(information[2])])
+        costs.append([int(information[0]), information[1], int(information[2])])
 
         server_id = information[0]
     
