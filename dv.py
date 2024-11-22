@@ -193,7 +193,7 @@ def update_routing(routing_update):
 
     # value is in format [IP, port]
     # I have to find sender id this way because routing_update does not contain a key for Server ID, but it does have the IP
-    for id, value in servers:
+    for id, value in servers.items():
         if value[0] == sender_ip:
             sender_id = id
     
