@@ -204,8 +204,8 @@ def update_routing(routing_update):
     
     if sender_id == -1:
         print("Sender id was not found when updating routing")
-    else:
-        print("Got packet from sender id: " + sender_id)
+    # else:
+    #     print("Got packet from sender id: " + sender_id)
     
     # go through all the destination cost information given by the routing update from this server
     for i in range(num_updates):
@@ -216,8 +216,8 @@ def update_routing(routing_update):
         # Cost for THIS server to go to the server with sender id + n_cost
         new_cost = routing_table[sender_id][1] + n_cost
 
-        print("New cost coming from server id " + sender_id + " towards destination "  + n_dest_id + ":")
-        print(new_cost)
+        # print("New cost coming from server id " + sender_id + " towards destination "  + n_dest_id + ":")
+        # print(new_cost)
 
         # If the cost, according to the current routing table, to the destination improves, change it
         if new_cost < routing_table[n_dest_id][1]:
