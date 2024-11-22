@@ -106,7 +106,7 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and corresponding IP, port pair")
 
-        servers[int(information[0])] = [information[1], int(information[2])]
+        servers[information[0]] = [information[1], int(information[2])]
     
     for i in range(num_neighbors):
         information = f.readline().split()
@@ -115,7 +115,7 @@ def read_topology(fileDirectory):
         if len(information) != 3:
             print("Topology file is written wrong, it should be in this format: server-id # and neighbor id and cost")
         
-        costs.append([int(information[0]), information[1], int(information[2])])
+        costs.append([information[0], information[1], int(information[2])])
 
         server_id = information[0]
     
@@ -193,16 +193,19 @@ def receive_routing_updates():
 def update_routing(routing_update):
     num_updates = routing_update["Number of update fields"]
     sender_ip = routing_update["Server IP"]
+    sender_port = routing_update["Server port"]
     sender_id = -1
 
     # value is in format [IP, port]
     # I have to find sender id this way because routing_update does not contain a key for Server ID, but it does have the IP
     for id, value in servers.items():
-        if value[0] == sender_ip:
+        if value[0] == sender_ip and value[1] == sender_port:
             sender_id = id
     
     if sender_id == -1:
         print("Sender id was not found when updating routing")
+    else:
+        print("Got packet from sender id: " + sender_id)
     
     # go through all the destination cost information given by the routing update from this server
     for i in range(num_updates):
@@ -212,6 +215,9 @@ def update_routing(routing_update):
 
         # Cost for THIS server to go to the server with sender id + n_cost
         new_cost = routing_table[sender_id][1] + n_cost
+
+        print("New cost coming from server id " + sender_id + " towards destination "  + n_dest_id + ":")
+        print(new_cost)
 
         # If the cost, according to the current routing table, to the destination improves, change it
         if new_cost < routing_table[n_dest_id][1]:
