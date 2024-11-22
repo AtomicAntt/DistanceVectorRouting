@@ -2,6 +2,7 @@ import socket
 import threading
 import sys
 import math
+import time
 
 # Values initialized after reading the toplogy file
 num_servers = -1
@@ -54,6 +55,14 @@ def main():
 
             initialize_routing_table()
 
+            receive_routing_thread = threading.Thread(target=receive_routing_updates)
+            receive_routing_thread.daemon = True
+            receive_routing_thread.start()
+
+            periodic_update_thread = threading.Thread(target=periodic_updates)
+            periodic_update_thread.daemon = True
+            periodic_update_thread.start()
+
             print_vars() # for debugging
         elif cmd == "update":
             if len(command) != 4:
@@ -65,12 +74,18 @@ def main():
             print("Displaying # of distance vector packets this server has received since last invocation")
         elif cmd == "display":
             print("Displaying the current routing table")
+            print(routing_table)
         elif cmd == "disable":
             if len(command) != 2:
                 print("disable ERROR, correct usage: disable <server-ID>")
                 continue
         elif cmd == "crash":
             print("Closing all connections")
+
+def periodic_updates():
+    while True:
+        time.sleep(routing_update_interval)
+        send_routing_updates()
 
 def read_topology(fileDirectory):
     global num_servers, num_neighbors, server_id, port, server_ip
@@ -169,6 +184,7 @@ def receive_routing_updates():
             # bellman ford equation to update routing table
             update_routing(message.decode())
 
+# Checks if a better cost is found after processing the routing update given
 def update_routing(routing_update):
     num_updates = routing_update["Number of update fields"]
     sender_ip = routing_update["Server IP"]
@@ -196,6 +212,7 @@ def update_routing(routing_update):
         if new_cost < routing_table[n_dest_id][1]:
             # The sender id gets to be the next hop of the routing table
             routing_table[n_dest_id] = [sender_id, new_cost]
+
 
 # For debug purposes
 def print_vars():
