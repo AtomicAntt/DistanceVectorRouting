@@ -3,6 +3,7 @@ import threading
 import sys
 import math
 import time
+import json
 
 # Values initialized after reading the toplogy file
 num_servers = -1
@@ -169,20 +170,20 @@ def send_routing_updates():
         neighbor_port = servers.get(neighbor)[1] # get server port from given server id
 
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        client_socket.sendto(routing_update.encode(), (neighbor_ip, neighbor_port))
+        client_socket.sendto(json.dumps(routing_update).encode(), (neighbor_ip, int(neighbor_port)))
 
 # This is a thread ran in the main function to read updates + use Bellman Ford equation to determine best routing
 def receive_routing_updates():
     global packets_received
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_socket.bind((server_ip, port))
+    server_socket.bind((server_ip, int(port)))
 
     while True:
         message, address = server_socket.recvfrom(1024)
         with lock:
             packets_received += 1
             # bellman ford equation to update routing table
-            update_routing(message.decode())
+            update_routing(json.loads(message.decode()))
 
 # Checks if a better cost is found after processing the routing update given
 def update_routing(routing_update):
