@@ -28,7 +28,7 @@ routing_table = {}
 
 packets_received = 0
 
-lock = threading.lock() # so shared memory can be altered with threads safely
+lock = threading.Lock() # so shared memory can be altered with threads safely
 
 def main():
     global routing_update_interval
