@@ -78,8 +78,12 @@ def main():
             print(packets_received)
             packets_received = 0
         elif cmd == "display":
-            print("Displaying the current routing table")
-            print(routing_table)
+            print("Current routing table:")
+            print("<destination-server-ID> <next-hop-server-ID> <cost-of-path>")
+            # print(routing_table)
+            # Routing table format (python dictionary) - destination id : [next hop, cost]
+            for key, value in routing_table.items():
+                print(key + " " + str(value[0]) + " " + str(value[1]))
         elif cmd == "disable":
             if len(command) != 2:
                 print("disable ERROR, correct usage: disable <server-ID>")
