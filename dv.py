@@ -310,8 +310,8 @@ def update_routing(routing_update):
             # Edge case: If the same destination and hop given suddenly changes,
             # yet the cost has increased, it's likely that the link has changed/crashed
 
-            print("Looks like some link from this server to " + str(sender_id) + " to " + str(n_dest_id) + " has changed.")
-            print("The link cost will now change from " + str(routing_table[n_dest_id][1]) + " to " + str(new_cost))
+            # print("Looks like some link from this server to " + str(sender_id) + " to " + str(n_dest_id) + " has changed.")
+            # print("The link cost will now change from " + str(routing_table[n_dest_id][1]) + " to " + str(new_cost))
             routing_table[n_dest_id] = [sender_id, new_cost] 
 
     print("RECEIVED A MESSAGE FROM SERVER " + sender_id)
