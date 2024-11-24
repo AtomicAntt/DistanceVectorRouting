@@ -69,6 +69,23 @@ def main():
             if len(command) != 4:
                 print("update ERROR, correct usage: update <server-ID1> <server-ID2> <Link Cost>")
                 continue
+
+            server_id_one = command[1]
+            server_id_two = command[2]
+            if command[3] == "inf":
+                link_cost = math.inf
+            else:
+                link_cost = int(command[3])
+
+            # entry is an array in this format: [server id, neighbor id, cost]
+            for entry in costs:
+                # If the two serversgiven are the server and neighbor id pairs, update the cost
+                if (entry[0] == server_id_one and entry[1] == server_id_two) or (entry[0] == server_id_two and entry[1] == server_id_one):
+                    entry[2] = link_cost
+                    break
+            initialize_routing_table()
+            send_routing_updates() # Without this, sometimes the route is not found by the other servers
+
         elif cmd == "step":
             print("Sending routing update to neighbors")
             send_routing_updates()
@@ -88,8 +105,14 @@ def main():
             if len(command) != 2:
                 print("disable ERROR, correct usage: disable <server-ID>")
                 continue
+            routing_table[command[1]] = [None, math.inf]
+            send_routing_updates()
         elif cmd == "crash":
             print("Closing all connections")
+            for dest in routing_table:
+                routing_table[dest] = [None, math.inf]
+            send_routing_updates()
+
 
 def periodic_updates():
     while True:
@@ -227,6 +250,14 @@ def update_routing(routing_update):
         if new_cost < routing_table[n_dest_id][1]:
             # The sender id gets to be the next hop of the routing table
             routing_table[n_dest_id] = [sender_id, new_cost]
+        elif new_cost > routing_table[n_dest_id][1] and routing_table[n_dest_id][0] == sender_id: 
+            # Edge case: If the same destination and hop given suddenly changes,
+            # yet the cost has increased, it's likely that the link has changed/crashed
+
+            print("Looks like some link from this server to " + str(sender_id) + " to " + str(n_dest_id) + " has changed.")
+            print("The link cost will now change from " + str(routing_table[n_dest_id][1]) + " to " + str(new_cost))
+            routing_table[n_dest_id] = [sender_id, new_cost] 
+
 
 
 # For debug purposes
