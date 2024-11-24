@@ -23,6 +23,9 @@ servers = {}
 # [server id, neighbor id, cost]
 costs = []
 
+# array of disabled server ids
+disabled_servers = []
+
 # Data entered should be like this:
 # destination id : [next_hop id, cost]
 routing_table = {}
@@ -113,10 +116,22 @@ def main():
                 print(key + " " + str(value[0]) + " " + str(value[1]))
             print("display SUCCESS")
         elif cmd == "disable":
+            global disabled_servers
             if len(command) != 2:
                 print("disable ERROR, correct usage: disable <server-ID>")
                 continue
-            routing_table[command[1]] = [None, math.inf]
+
+            is_neighbor = False
+
+            for _, neighbor, _ in costs:
+                if neighbor == command[1]:
+                    is_neighbor = True
+            
+            if is_neighbor == False:
+                print("disable ERROR, given server id is not a neighbor")
+
+            routing_table[command[1]] = [routing_table[command[1]][0], math.inf] 
+            disabled_servers.append(command[1])
             send_routing_updates()
             print("disable SUCCESS")
         elif cmd == "crash":
@@ -208,6 +223,8 @@ def send_routing_updates():
     # Value of costs (array) is in this format: [server id, neighbor id, cost]
     # Now send this routing update to all of the neighboring servers
     for _, neighbor, _ in costs:
+        if neighbor in disabled_servers: # dont send disabled servers anything
+            continue
         neighbor_ip = servers.get(neighbor)[0] # get server ip from given server id
         neighbor_port = servers.get(neighbor)[1] # get server port from given server id
 
@@ -269,7 +286,7 @@ def update_routing(routing_update):
             print("The link cost will now change from " + str(routing_table[n_dest_id][1]) + " to " + str(new_cost))
             routing_table[n_dest_id] = [sender_id, new_cost] 
 
-    print("RECEIVED A MESSAGE FROM SERVER " + server_id)
+    print("RECEIVED A MESSAGE FROM SERVER " + sender_id)
 
 
 # For debug purposes
