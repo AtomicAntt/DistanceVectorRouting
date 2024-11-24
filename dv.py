@@ -134,7 +134,10 @@ def main():
             if is_neighbor == False:
                 print("disable ERROR, given server id is not a neighbor")
 
-            routing_table[command[1]] = [routing_table[command[1]][0], math.inf] 
+            routing_table[command[1]] = [routing_table[command[1]][0], math.inf] # cost for destination to a disabled server is inf
+            for destination, value in routing_table.items(): # also, if any destinations require next hop from disabled, also make it inf
+                if value[0] == command[1]:
+                    value[1] = math.inf
             disabled_servers.append(command[1])
             send_routing_updates()
             print("disable SUCCESS")
