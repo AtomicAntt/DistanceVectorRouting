@@ -26,6 +26,10 @@ costs = []
 # array of disabled server ids
 disabled_servers = []
 
+# Purpose: find how many times each server has not sent a message since update interval. If 3 w/out update, assume not in network
+# server id # : # times not sent message
+server_counter = {}
+
 # Data entered should be like this:
 # destination id : [next_hop id, cost]
 routing_table = {}
@@ -144,6 +148,27 @@ def periodic_updates():
     while True:
         time.sleep(routing_update_interval)
         send_routing_updates()
+
+        servers_to_pop = []
+
+        # Check how many times the other servers have given updates, if not given 3 consecutively, remove them by setting to inf
+        for tracked_server_ids in server_counter:
+            server_counter[tracked_server_ids] += 1
+            if server_counter[tracked_server_ids] >= 3:
+                routing_table[tracked_server_ids][1] = math.inf # make the cost to go there infinity
+                servers_to_pop.append(tracked_server_ids)
+
+                for destination_id, value in routing_table.items():
+                    if value[1] == tracked_server_ids: # If your next hop is the dropped link, reset it
+                        value[1] = None
+                        value[2] = math.inf 
+
+                # debug
+                print("Just dropped " + tracked_server_ids + " for missing 3 consecutive updates!")
+                send_routing_updates()
+        
+        for id in servers_to_pop:
+            server_counter.pop(id, None) # dont track consecutive updates from them anymore
 
 def read_topology(fileDirectory):
     global num_servers, num_neighbors, server_id, port, server_ip
@@ -288,6 +313,8 @@ def update_routing(routing_update):
 
     print("RECEIVED A MESSAGE FROM SERVER " + sender_id)
 
+    # Since the server has sent a message, we reset the counter so this server doesnt assume they left the network when it reaches 3
+    server_counter[sender_id] = 0 
 
 # For debug purposes
 def print_vars():
