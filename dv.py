@@ -64,7 +64,7 @@ def main():
             periodic_update_thread.daemon = True
             periodic_update_thread.start()
 
-            print_vars() # for debugging
+            # print_vars() # for debugging
         elif cmd == "update":
             if len(command) != 4:
                 print("update ERROR, correct usage: update <server-ID1> <server-ID2> <Link Cost>")
@@ -76,24 +76,34 @@ def main():
                 link_cost = math.inf
             else:
                 link_cost = int(command[3])
+            
+            valid_ids = False
 
             # entry is an array in this format: [server id, neighbor id, cost]
             for entry in costs:
                 # If the two serversgiven are the server and neighbor id pairs, update the cost
                 if (entry[0] == server_id_one and entry[1] == server_id_two) or (entry[0] == server_id_two and entry[1] == server_id_one):
                     entry[2] = link_cost
+                    valid_ids = True
                     break
+            
+            if valid_ids == False:
+                print("update ERROR: ids are not valid")
+            else:
+                print("update SUCCESS")
             initialize_routing_table()
             send_routing_updates() # Without this, sometimes the route is not found by the other servers
 
         elif cmd == "step":
-            print("Sending routing update to neighbors")
             send_routing_updates()
+            print("step SUCCESS")
+
         elif cmd == "packets":
             global packets_received
             print("Displaying # of distance vector packets this server has received since last invocation:")
             print(packets_received)
             packets_received = 0
+            print("packets SUCCESS")
         elif cmd == "display":
             print("Current routing table:")
             print("<destination-server-ID> <next-hop-server-ID> <cost-of-path>")
@@ -101,18 +111,19 @@ def main():
             # Routing table format (python dictionary) - destination id : [next hop, cost]
             for key, value in routing_table.items():
                 print(key + " " + str(value[0]) + " " + str(value[1]))
+            print("display SUCCESS")
         elif cmd == "disable":
             if len(command) != 2:
                 print("disable ERROR, correct usage: disable <server-ID>")
                 continue
             routing_table[command[1]] = [None, math.inf]
             send_routing_updates()
+            print("disable SUCCESS")
         elif cmd == "crash":
-            print("Closing all connections")
             for dest in routing_table:
                 routing_table[dest] = [None, math.inf]
             send_routing_updates()
-
+            print("crash SUCCESS")
 
 def periodic_updates():
     while True:
@@ -258,6 +269,7 @@ def update_routing(routing_update):
             print("The link cost will now change from " + str(routing_table[n_dest_id][1]) + " to " + str(new_cost))
             routing_table[n_dest_id] = [sender_id, new_cost] 
 
+    print("RECEIVED A MESSAGE FROM SERVER " + server_id)
 
 
 # For debug purposes
