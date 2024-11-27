@@ -5,8 +5,8 @@ import math
 import time
 import json
 
-# Line 231, python dictionary to represent distance vector update format
-# Line 38, python dictionary to represent the routing table
+# Line 21 of docs, distance vector update data structure
+# Line 17 of docs, routing table data structure
 
 # Values initialized after reading the toplogy file
 num_servers = -1
